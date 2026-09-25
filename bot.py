@@ -41,18 +41,17 @@ MAX_RUN_SECONDS = int(os.environ.get("TEST_DURATION_SECONDS") or (5 * 3600 + 40 
 # ============================================================
 
 RSS_FEEDS = [
-    # ایرانی
-    "https://www.isna.ir/rss",
-    "https://www.mehrnews.com/rss",
-    "https://www.khabaronline.ir/rss",
-    "https://www.tasnimnews.com/fa/rss/feed/0/7/0/",
-    # بین‌المللی
+    # آمریکایی
     "http://rss.cnn.com/rss/cnn_topstories.rss",
-    "https://www.aljazeera.com/xml/rss/all.xml",
-    "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "http://feeds.foxnews.com/foxnews/latest?format=xml",
+    "http://feeds.nbcnews.com/feeds/topstories",
     # عبری‌زبان / اسرائیلی
     "https://www.timesofisrael.com/feed/",
     "https://www.ynet.co.il/Integration/StoryRss2.xml",
+    "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
+    # ایران‌اینترنشنال (آزمایشی — لینک RSS رسمی این سایت پیدا/تایید نشد،
+    # اگر در لاگ‌های Actions خطا داد، همین خط را حذف کنید)
+    "https://www.iranintl.com/en/rss",
 ]
 
 # ============================================================
