@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ربات رایگان تلگرامی برای جمع‌آوری خودکار اخبار و پست در کانال
+ربات رایگان تلگرامی — چک مداوم اخبار + پست با فاصله‌ی ثابت
 ------------------------------------------------------------
-این برنامه هیچ هزینه‌ای ندارد. روی GitHub Actions اجرا می‌شود.
+این ربات به‌صورت پیوسته (بدون وقفه) چند خبرگزاری را چک می‌کند، اما برای
+اینکه پیام‌ها پشت‌سرهم در کانال ظاهر نشوند، بین هر پست حداقل ۷ دقیقه فاصله
+می‌اندازد.
 
-هر بار اجرا:
-    ۱. چند خبرگزاری معتبر ایرانی، بین‌المللی و عبری‌زبان را چک می‌کند.
-    ۲. اگر خبر جدیدی پیدا کرد، عنوان و خلاصه‌اش را می‌خواند.
-    ۳. اگر خبر مربوط به «جنگ»، «اخبار مهم ایران»، «تعطیلی» یا
-       «سخنان افراد مهم» بود، آن را پست می‌کند.
-    ۴. فقط یک خبر در هر اجرا پست می‌شود، تا پیام‌ها پشت‌سرهم نباشند
-       (زمان‌بندی فاصله بین پست‌ها را فایل news.yml کنترل می‌کند).
+چون سرویس رایگان GitHub Actions هر اجرا را حداکثر تا ۶ ساعت اجازه می‌دهد،
+این کد خودش را بعد از حدود ۵ ساعت و ۴۰ دقیقه به‌آرامی متوقف می‌کند و فایل
+news.yml طوری تنظیم شده که هر ۶ ساعت دوباره از نو شروعش کند — یعنی در عمل
+تقریباً همیشه در حال اجراست.
 """
 
 import json
 import os
 import re
 import html
+import time
 import logging
+import subprocess
 import requests
 import feedparser
 
@@ -28,6 +29,12 @@ import feedparser
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "اینجا-توکن-ربات-را-بگذارید")
 CHANNEL_ID = os.environ.get("CHANNEL_ID", "@یوزرنیم_کانال_شما")
+
+CHECK_INTERVAL_SECONDS = 30          # هر چند ثانیه سایت‌ها را چک کند (تقریباً لحظه‌ای)
+MIN_SECONDS_BETWEEN_POSTS = 7 * 60   # حداقل فاصله بین دو پست: ۷ دقیقه
+
+# حداکثر مدت زمان اجرای مداوم (کمی کمتر از سقف ۶ ساعته گیت‌هاب)
+MAX_RUN_SECONDS = int(os.environ.get("TEST_DURATION_SECONDS") or (5 * 3600 + 40 * 60))
 
 # ============================================================
 # بخش ۲: منابع خبری
@@ -48,55 +55,40 @@ RSS_FEEDS = [
     "https://www.ynet.co.il/Integration/StoryRss2.xml",
 ]
 
-# فقط یک خبر در هر اجرا پست می‌شود (برای رعایت فاصله زمانی بین پست‌ها)
-MAX_POSTS_PER_RUN = 1
-
 # ============================================================
 # بخش ۳: کلمات کلیدی (فارسی + انگلیسی + عبری)
 # ============================================================
 
 CATEGORIES = {
     "⚔️ جنگ": [
-        # فارسی
         "جنگ", "حمله", "موشک", "بمباران", "درگیری نظامی", "آتش‌بس",
         "تجاوز نظامی", "حمله نظامی", "پهپاد", "انفجار",
-        # انگلیسی
         "war", "attack", "missile", "airstrike", "air strike", "bombing",
         "military conflict", "ceasefire", "invasion", "drone strike",
         "explosion", "strike on", "troops",
-        # عبری
         "מלחמה", "תקיפה", "טיל", "הפצצה", "לחימה", "הפוגה", "פלישה",
         "רחפן", "פיצוץ",
     ],
     "📌 خبر مهم ایران": [
-        # فارسی
         "رئیس‌جمهور", "رهبر انقلاب", "مجلس شورای اسلامی", "بانک مرکزی",
         "وزارت خارجه", "شورای امنیت", "تحریم", "دولت ایران", "قوه قضاییه",
-        # انگلیسی (مرتبط با ایران)
         "iran's president", "iranian president", "iranian government",
         "iran nuclear", "sanctions on iran", "tehran", "iranian parliament",
         "iran's supreme leader", "irgc", "revolutionary guard",
-        # عبری
         "איראן", "טהראן", "נשיא איראן", "משמרות המהפכה",
     ],
     "📅 تعطیلی": [
-        # فارسی
         "تعطیل شد", "تعطیلی مدارس", "تعطیل رسمی", "تعطیلی ادارات",
         "تعطیلی بازار", "تعطیلی دانشگاه‌ها", "روز تعطیل",
-        # انگلیسی
         "schools closed", "offices closed", "public holiday declared",
         "declared a holiday", "markets closed",
-        # عبری
         "חג", "בתי הספר נסגרו", "יום שבתון",
     ],
     "🗣️ سخنان مهم": [
-        # فارسی
         "اعلام کرد", "هشدار داد", "تاکید کرد", "اظهار داشت", "خبر داد",
         "وزیر گفت", "سخنگو گفت", "رئیس‌جمهور گفت",
-        # انگلیسی
         "president said", "prime minister said", "said in a statement",
         "warned that", "announced that", "spokesperson said",
-        # عبری
         "אמר הנשיא", "ראש הממשלה אמר", "הודיע",
     ],
 }
@@ -105,7 +97,9 @@ CATEGORIES = {
 # از این خط به پایین، نیازی به تغییر چیزی نیست
 # ============================================================
 
-STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "posted_links.json")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+POSTED_FILE = os.path.join(BASE_DIR, "posted_links.json")
+LAST_POST_FILE = os.path.join(BASE_DIR, "last_post_time.json")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("news_bot")
@@ -114,9 +108,9 @@ TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 
 def load_posted_links():
-    if os.path.exists(STATE_FILE):
+    if os.path.exists(POSTED_FILE):
         try:
-            with open(STATE_FILE, "r", encoding="utf-8") as f:
+            with open(POSTED_FILE, "r", encoding="utf-8") as f:
                 return set(json.load(f))
         except (json.JSONDecodeError, OSError):
             log.warning("فایل وضعیت خراب بود، از صفر شروع می‌کنیم.")
@@ -124,9 +118,41 @@ def load_posted_links():
 
 
 def save_posted_links(links):
-    trimmed = list(links)[-3000:]
-    with open(STATE_FILE, "w", encoding="utf-8") as f:
+    trimmed = list(links)[-4000:]
+    with open(POSTED_FILE, "w", encoding="utf-8") as f:
         json.dump(trimmed, f, ensure_ascii=False, indent=2)
+
+
+def load_last_post_time() -> float:
+    if os.path.exists(LAST_POST_FILE):
+        try:
+            with open(LAST_POST_FILE, "r", encoding="utf-8") as f:
+                return json.load(f).get("last_post_unix", 0)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return 0.0
+
+
+def save_last_post_time(ts: float):
+    with open(LAST_POST_FILE, "w", encoding="utf-8") as f:
+        json.dump({"last_post_unix": ts}, f)
+
+
+def git_push_state():
+    """ذخیره‌ی وضعیت فعلی در خود مخزن گیت‌هاب، تا بعد از هر اجرای جدید از دست نرود."""
+    try:
+        subprocess.run(["git", "config", "user.name", "news-bot"], check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "news-bot@users.noreply.github.com"],
+                        check=True, capture_output=True)
+        subprocess.run(["git", "add", "posted_links.json", "last_post_time.json"],
+                        check=True, capture_output=True)
+        diff = subprocess.run(["git", "diff", "--staged", "--quiet"])
+        if diff.returncode != 0:
+            subprocess.run(["git", "commit", "-m", "update state"], check=True, capture_output=True)
+            subprocess.run(["git", "push"], check=True, capture_output=True)
+            log.info("وضعیت ذخیره و push شد.")
+    except subprocess.CalledProcessError as e:
+        log.warning(f"ذخیره‌ی وضعیت روی گیت‌هاب ناموفق بود: {e}")
 
 
 def clean_html(raw_html: str) -> str:
@@ -144,12 +170,8 @@ def find_category(title: str, summary: str):
 
 
 def format_message(title: str, summary: str, category: str) -> str:
-    """
-    پیام خلاصه: فقط دسته + عنوان + خلاصه چندخطی. بدون لینک و بدون منبع.
-    """
     if len(summary) > 350:
         summary = summary[:350].rsplit(" ", 1)[0] + "..."
-
     message = f"{category}\n"
     message += f"<b>{html.escape(title)}</b>\n\n"
     if summary:
@@ -159,12 +181,7 @@ def format_message(title: str, summary: str, category: str) -> str:
 
 def send_to_channel(text: str) -> bool:
     url = f"{TELEGRAM_API}/sendMessage"
-    payload = {
-        "chat_id": CHANNEL_ID,
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": False,
-    }
+    payload = {"chat_id": CHANNEL_ID, "text": text, "parse_mode": "HTML"}
     try:
         resp = requests.post(url, data=payload, timeout=20)
         resp.raise_for_status()
@@ -176,13 +193,9 @@ def send_to_channel(text: str) -> bool:
         return False
 
 
-def check_feeds_once(posted_links: set) -> set:
-    new_posts_count = 0
-
+def find_next_candidate(posted_links: set):
+    """یک خبر مرتبط و پست‌نشده پیدا می‌کند (اگر باشد)."""
     for feed_url in RSS_FEEDS:
-        if new_posts_count >= MAX_POSTS_PER_RUN:
-            break
-
         try:
             parsed = feedparser.parse(feed_url)
         except Exception as e:
@@ -190,56 +203,75 @@ def check_feeds_once(posted_links: set) -> set:
             continue
 
         if parsed.bozo and not parsed.entries:
-            log.warning(f"این سایت قابل خواندن نبود: {feed_url}")
             continue
 
-        entries = list(reversed(parsed.entries))
-
-        for entry in entries:
+        for entry in reversed(parsed.entries):
             link = entry.get("link")
             if not link or link in posted_links:
                 continue
 
-            if new_posts_count >= MAX_POSTS_PER_RUN:
-                break
-
             title = clean_html(entry.get("title", "بدون عنوان"))
             summary = clean_html(entry.get("summary", ""))
-
             category = find_category(title, summary)
 
             if category is None:
-                posted_links.add(link)  # نامرتبط؛ دیگر بررسی نشود
+                posted_links.add(link)  # نامرتبط، دیگر بررسی نشود
                 continue
 
-            message = format_message(title, summary, category)
-            if send_to_channel(message):
-                log.info(f"پست شد [{category}]: {title[:60]}")
-                posted_links.add(link)
-                new_posts_count += 1
-            else:
-                log.warning(f"پست نشد: {link}")
-                # لینک را علامت نمی‌زنیم تا در اجرای بعد دوباره امتحان شود
+            return link, title, summary, category
 
-    save_posted_links(posted_links)
-    return posted_links
+    return None
 
 
 def main():
     if "اینجا" in BOT_TOKEN:
-        log.error("BOT_TOKEN تنظیم نشده (نه در فایل و نه در Secrets گیت‌هاب).")
+        log.error("BOT_TOKEN تنظیم نشده.")
         return
     if "یوزرنیم_کانال_شما" in CHANNEL_ID:
-        log.error("CHANNEL_ID تنظیم نشده (نه در فایل و نه در Secrets گیت‌هاب).")
+        log.error("CHANNEL_ID تنظیم نشده.")
         return
 
-    log.info("شروع بررسی اخبار...")
+    log.info(f"شروع اجرای مداوم (حداکثر {MAX_RUN_SECONDS} ثانیه)...")
     posted_links = load_posted_links()
-    log.info(f"{len(posted_links)} خبر قبلاً بررسی‌شده بارگذاری شد.")
+    last_post_time = load_last_post_time()
+    run_start = time.time()
+    loop_count = 0
 
-    posted_links = check_feeds_once(posted_links)
+    while time.time() - run_start < MAX_RUN_SECONDS:
+        loop_count += 1
+        now = time.time()
 
-    log.info("بررسی این دور تمام شد.")
+        if now - last_post_time >= MIN_SECONDS_BETWEEN_POSTS:
+            candidate = find_next_candidate(posted_links)
+            if candidate:
+                link, title, summary, category = candidate
+                message = format_message(title, summary, category)
+                if send_to_channel(message):
+                    log.info(f"پست شد [{category}]: {title[:60]}")
+                    posted_links.add(link)
+                    last_post_time = time.time()
+                    save_posted_links(posted_links)
+                    save_last_post_time(last_post_time)
+                    git_push_state()
+                else:
+                    log.warning(f"پست نشد: {link}")
+            else:
+                log.info("خبر جدید مرتبطی پیدا نشد.")
+        else:
+            remaining = int(MIN_SECONDS_BETWEEN_POSTS - (now - last_post_time))
+            log.info(f"در حال استراحت تا پست بعدی ({remaining} ثانیه مانده)...")
+
+        # هر ۲۰ دور، وضعیت را ذخیره کن حتی اگر پستی انجام نشده باشد
+        if loop_count % 20 == 0:
+            save_posted_links(posted_links)
+            git_push_state()
+
+        time.sleep(CHECK_INTERVAL_SECONDS)
+
+    log.info("زمان این اجرا تمام شد؛ وضعیت نهایی ذخیره می‌شود.")
+    save_posted_links(posted_links)
+    save_last_post_time(last_post_time)
+    git_push_state()
 
 
 if __name__ == "__main__":
