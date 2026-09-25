@@ -22,6 +22,7 @@ import logging
 import subprocess
 import requests
 import feedparser
+from deep_translator import GoogleTranslator
 
 # ============================================================
 # بخش ۱: تنظیمات
@@ -159,6 +160,21 @@ def clean_html(raw_html: str) -> str:
     return html.unescape(text).strip()
 
 
+def translate_to_persian(text: str) -> str:
+    """
+    ترجمه‌ی رایگان متن به فارسی (از طریق Google Translate غیررسمی).
+    اگر ترجمه به هر دلیلی شکست بخورد، همان متن اصلی برگردانده می‌شود
+    (بهتر از پست نشدن خبر است).
+    """
+    if not text:
+        return text
+    try:
+        return GoogleTranslator(source="auto", target="fa").translate(text)
+    except Exception as e:
+        log.warning(f"ترجمه ناموفق بود، متن اصلی استفاده می‌شود: {e}")
+        return text
+
+
 def find_category(title: str, summary: str):
     full_text = f"{title} {summary}".lower()
     for category_name, keywords in CATEGORIES.items():
@@ -217,7 +233,9 @@ def find_next_candidate(posted_links: set):
                 posted_links.add(link)  # نامرتبط، دیگر بررسی نشود
                 continue
 
-            return link, title, summary, category
+            title_fa = translate_to_persian(title)
+            summary_fa = translate_to_persian(summary)
+            return link, title_fa, summary_fa, category
 
     return None
 
