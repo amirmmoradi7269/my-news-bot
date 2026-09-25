@@ -3,16 +3,15 @@
 """
 ربات رایگان تلگرامی برای جمع‌آوری خودکار اخبار و پست در کانال
 ------------------------------------------------------------
-این برنامه هیچ هزینه‌ای ندارد. طوری طراحی شده که روی GitHub Actions
-اجرا شود (سرورهای رایگان گیت‌هاب) — یعنی نیازی نیست گوشی یا کامپیوترتان
-همیشه روشن باشد؛ گیت‌هاب خودش هر چند دقیقه یک‌بار این کد را اجرا می‌کند.
+این برنامه هیچ هزینه‌ای ندارد. روی GitHub Actions اجرا می‌شود.
 
-کاری که هر بار اجرا انجام می‌دهد:
-    ۱. چند سایت خبری را چک می‌کند.
+هر بار اجرا:
+    ۱. چند خبرگزاری معتبر ایرانی، بین‌المللی و عبری‌زبان را چک می‌کند.
     ۲. اگر خبر جدیدی پیدا کرد، عنوان و خلاصه‌اش را می‌خواند.
     ۳. اگر خبر مربوط به «جنگ»، «اخبار مهم ایران»، «تعطیلی» یا
-       «سخنان افراد مهم» بود، آن را در چند خط در کانال تلگرام پست می‌کند.
-    ۴. اگر خبر مرتبط نبود، آن را نادیده می‌گیرد.
+       «سخنان افراد مهم» بود، آن را پست می‌کند.
+    ۴. فقط یک خبر در هر اجرا پست می‌شود، تا پیام‌ها پشت‌سرهم نباشند
+       (زمان‌بندی فاصله بین پست‌ها را فایل news.yml کنترل می‌کند).
 """
 
 import json
@@ -25,49 +24,80 @@ import feedparser
 
 # ============================================================
 # بخش ۱: تنظیمات
-# این دو مقدار از GitHub Secrets خوانده می‌شوند (امن‌تر از نوشتن مستقیم).
-# اگر می‌خواهید روی گوشی/کامپیوتر خودتان تست کنید، می‌توانید همین‌جا
-# مستقیم مقدارشان را بنویسید.
 # ============================================================
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "اینجا-توکن-ربات-را-بگذارید")
 CHANNEL_ID = os.environ.get("CHANNEL_ID", "@یوزرنیم_کانال_شما")
 
 # ============================================================
-# بخش ۲: منابع خبری (نیازی به تغییر ندارد، ولی می‌توانید کم/زیاد کنید)
+# بخش ۲: منابع خبری
 # ============================================================
 
 RSS_FEEDS = [
+    # ایرانی
     "https://www.isna.ir/rss",
     "https://www.mehrnews.com/rss",
     "https://www.khabaronline.ir/rss",
     "https://www.tasnimnews.com/fa/rss/feed/0/7/0/",
+    # بین‌المللی
+    "http://rss.cnn.com/rss/cnn_topstories.rss",
+    "https://www.aljazeera.com/xml/rss/all.xml",
+    "https://feeds.bbci.co.uk/news/world/rss.xml",
+    # عبری‌زبان / اسرائیلی
+    "https://www.timesofisrael.com/feed/",
+    "https://www.ynet.co.il/Integration/StoryRss2.xml",
 ]
 
-# حداکثر تعداد پست در هر بار اجرا (برای جلوگیری از سیل پیام در اولین اجرا)
-MAX_POSTS_PER_RUN = 5
+# فقط یک خبر در هر اجرا پست می‌شود (برای رعایت فاصله زمانی بین پست‌ها)
+MAX_POSTS_PER_RUN = 1
 
 # ============================================================
-# بخش ۳: کلمات کلیدی — با این‌ها تشخیص می‌دهیم خبر مهم هست یا نه
-# (می‌توانید کلمه اضافه یا کم کنید)
+# بخش ۳: کلمات کلیدی (فارسی + انگلیسی + عبری)
 # ============================================================
 
 CATEGORIES = {
     "⚔️ جنگ": [
-        "جنگ", "حمله", "موشک", "بمباران", "درگیری نظامی",
-        "آتش‌بس", "تجاوز نظامی", "حمله نظامی", "پهپاد", "انفجار",
+        # فارسی
+        "جنگ", "حمله", "موشک", "بمباران", "درگیری نظامی", "آتش‌بس",
+        "تجاوز نظامی", "حمله نظامی", "پهپاد", "انفجار",
+        # انگلیسی
+        "war", "attack", "missile", "airstrike", "air strike", "bombing",
+        "military conflict", "ceasefire", "invasion", "drone strike",
+        "explosion", "strike on", "troops",
+        # عبری
+        "מלחמה", "תקיפה", "טיל", "הפצצה", "לחימה", "הפוגה", "פלישה",
+        "רחפן", "פיצוץ",
     ],
     "📌 خبر مهم ایران": [
+        # فارسی
         "رئیس‌جمهور", "رهبر انقلاب", "مجلس شورای اسلامی", "بانک مرکزی",
         "وزارت خارجه", "شورای امنیت", "تحریم", "دولت ایران", "قوه قضاییه",
+        # انگلیسی (مرتبط با ایران)
+        "iran's president", "iranian president", "iranian government",
+        "iran nuclear", "sanctions on iran", "tehran", "iranian parliament",
+        "iran's supreme leader", "irgc", "revolutionary guard",
+        # عبری
+        "איראן", "טהראן", "נשיא איראן", "משמרות המהפכה",
     ],
     "📅 تعطیلی": [
+        # فارسی
         "تعطیل شد", "تعطیلی مدارس", "تعطیل رسمی", "تعطیلی ادارات",
         "تعطیلی بازار", "تعطیلی دانشگاه‌ها", "روز تعطیل",
+        # انگلیسی
+        "schools closed", "offices closed", "public holiday declared",
+        "declared a holiday", "markets closed",
+        # عبری
+        "חג", "בתי הספר נסגרו", "יום שבתון",
     ],
     "🗣️ سخنان مهم": [
+        # فارسی
         "اعلام کرد", "هشدار داد", "تاکید کرد", "اظهار داشت", "خبر داد",
         "وزیر گفت", "سخنگو گفت", "رئیس‌جمهور گفت",
+        # انگلیسی
+        "president said", "prime minister said", "said in a statement",
+        "warned that", "announced that", "spokesperson said",
+        # عبری
+        "אמר הנשיא", "ראש הממשלה אמר", "הודיע",
     ],
 }
 
@@ -84,7 +114,6 @@ TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 
 def load_posted_links():
-    """خواندن لینک‌های قبلاً پست‌شده، تا خبر تکراری پست نشود."""
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, "r", encoding="utf-8") as f:
@@ -95,33 +124,29 @@ def load_posted_links():
 
 
 def save_posted_links(links):
-    """ذخیره لینک‌های پست‌شده."""
-    trimmed = list(links)[-2000:]
+    trimmed = list(links)[-3000:]
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(trimmed, f, ensure_ascii=False, indent=2)
 
 
 def clean_html(raw_html: str) -> str:
-    """حذف تگ‌های HTML از متن خبر."""
     text = re.sub(r"<[^>]+>", "", raw_html or "")
     return html.unescape(text).strip()
 
 
 def find_category(title: str, summary: str):
-    """
-    چک می‌کند آیا خبر شامل کلمات کلیدی یکی از دسته‌هاست یا نه.
-    اگر بود، اسم دسته را برمی‌گرداند؛ وگرنه None.
-    """
-    full_text = f"{title} {summary}"
+    full_text = f"{title} {summary}".lower()
     for category_name, keywords in CATEGORIES.items():
         for keyword in keywords:
-            if keyword in full_text:
+            if keyword.lower() in full_text:
                 return category_name
     return None
 
 
-def format_message(title: str, summary: str, category: str, link: str, source_title: str) -> str:
-    """ساخت متن پیامی که در کانال پست می‌شود (چند خط خلاصه)."""
+def format_message(title: str, summary: str, category: str, link: str) -> str:
+    """
+    پیام خلاصه: دسته + عنوان + خلاصه چندخطی + لینک خام (بدون منبع، بدون متن اضافه دور لینک).
+    """
     if len(summary) > 350:
         summary = summary[:350].rsplit(" ", 1)[0] + "..."
 
@@ -129,13 +154,11 @@ def format_message(title: str, summary: str, category: str, link: str, source_ti
     message += f"<b>{html.escape(title)}</b>\n\n"
     if summary:
         message += f"{html.escape(summary)}\n\n"
-    message += f"🔗 <a href=\"{link}\">ادامه خبر</a>\n"
-    message += f"منبع: {html.escape(source_title)}"
+    message += link  # لینک خام؛ تلگرام خودش آن را قابل‌کلیک می‌کند
     return message
 
 
 def send_to_channel(text: str) -> bool:
-    """ارسال پیام به کانال تلگرام."""
     url = f"{TELEGRAM_API}/sendMessage"
     payload = {
         "chat_id": CHANNEL_ID,
@@ -155,10 +178,12 @@ def send_to_channel(text: str) -> bool:
 
 
 def check_feeds_once(posted_links: set) -> set:
-    """یک بار همه سایت‌های خبری را چک می‌کند."""
     new_posts_count = 0
 
     for feed_url in RSS_FEEDS:
+        if new_posts_count >= MAX_POSTS_PER_RUN:
+            break
+
         try:
             parsed = feedparser.parse(feed_url)
         except Exception as e:
@@ -169,8 +194,7 @@ def check_feeds_once(posted_links: set) -> set:
             log.warning(f"این سایت قابل خواندن نبود: {feed_url}")
             continue
 
-        source_title = parsed.feed.get("title", feed_url)
-        entries = list(reversed(parsed.entries))  # قدیمی‌ترین اول، تا ترتیب درست باشد
+        entries = list(reversed(parsed.entries))
 
         for entry in entries:
             link = entry.get("link")
@@ -178,25 +202,25 @@ def check_feeds_once(posted_links: set) -> set:
                 continue
 
             if new_posts_count >= MAX_POSTS_PER_RUN:
-                log.info("به سقف تعداد پست در این اجرا رسیدیم؛ بقیه در اجرای بعدی پست می‌شوند.")
-                save_posted_links(posted_links)
-                return posted_links
+                break
 
             title = clean_html(entry.get("title", "بدون عنوان"))
             summary = clean_html(entry.get("summary", ""))
 
             category = find_category(title, summary)
-            posted_links.add(link)  # این خبر را بررسی‌شده علامت می‌زنیم (چه پست شود چه نشود)
 
             if category is None:
-                continue  # مرتبط نبود، رد شو
+                posted_links.add(link)  # نامرتبط؛ دیگر بررسی نشود
+                continue
 
-            message = format_message(title, summary, category, link, source_title)
+            message = format_message(title, summary, category, link)
             if send_to_channel(message):
                 log.info(f"پست شد [{category}]: {title[:60]}")
+                posted_links.add(link)
                 new_posts_count += 1
             else:
                 log.warning(f"پست نشد: {link}")
+                # لینک را علامت نمی‌زنیم تا در اجرای بعد دوباره امتحان شود
 
     save_posted_links(posted_links)
     return posted_links
