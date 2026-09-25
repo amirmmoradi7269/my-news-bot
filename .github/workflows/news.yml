@@ -1,16 +1,26 @@
-name: Check News and Post to Telegram
+name: Continuous News Bot
 
 on:
   schedule:
-    - cron: '*/7 * * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
+    inputs:
+      test_duration_seconds:
+        description: 'مدت اجرای تستی به ثانیه (خالی = اجرای کامل ۵ ساعت و ۴۰ دقیقه‌ای)'
+        required: false
+        default: ''
+
+concurrency:
+  group: news-bot-continuous-run
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
 jobs:
-  check-news:
+  run-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 350
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,16 +33,18 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run news bot
+      - name: Run news bot (continuous)
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          TEST_DURATION_SECONDS: ${{ github.event.inputs.test_duration_seconds }}
         run: python bot.py
 
-      - name: Save updated list of posted news
+      - name: Final safety save
+        if: always()
         run: |
           git config user.name "news-bot"
           git config user.email "news-bot@users.noreply.github.com"
-          git add posted_links.json
-          git diff --staged --quiet || git commit -m "update posted list"
-          git push
+          git add posted_links.json last_post_time.json
+          git diff --staged --quiet || git commit -m "final state save"
+          git push || true
