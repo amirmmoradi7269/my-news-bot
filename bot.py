@@ -143,9 +143,9 @@ def find_category(title: str, summary: str):
     return None
 
 
-def format_message(title: str, summary: str, category: str, link: str) -> str:
+def format_message(title: str, summary: str, category: str) -> str:
     """
-    پیام خلاصه: دسته + عنوان + خلاصه چندخطی + لینک خام (بدون منبع، بدون متن اضافه دور لینک).
+    پیام خلاصه: فقط دسته + عنوان + خلاصه چندخطی. بدون لینک و بدون منبع.
     """
     if len(summary) > 350:
         summary = summary[:350].rsplit(" ", 1)[0] + "..."
@@ -153,8 +153,7 @@ def format_message(title: str, summary: str, category: str, link: str) -> str:
     message = f"{category}\n"
     message += f"<b>{html.escape(title)}</b>\n\n"
     if summary:
-        message += f"{html.escape(summary)}\n\n"
-    message += link  # لینک خام؛ تلگرام خودش آن را قابل‌کلیک می‌کند
+        message += html.escape(summary)
     return message
 
 
@@ -213,7 +212,7 @@ def check_feeds_once(posted_links: set) -> set:
                 posted_links.add(link)  # نامرتبط؛ دیگر بررسی نشود
                 continue
 
-            message = format_message(title, summary, category, link)
+            message = format_message(title, summary, category)
             if send_to_channel(message):
                 log.info(f"پست شد [{category}]: {title[:60]}")
                 posted_links.add(link)
