@@ -2,7 +2,7 @@ name: Check News and Post to Telegram
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/7 * * * *'
   workflow_dispatch:
 
 permissions:
