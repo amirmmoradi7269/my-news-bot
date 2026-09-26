@@ -47,12 +47,17 @@ RSS_FEEDS = [
     "http://feeds.foxnews.com/foxnews/latest?format=xml",
     "http://feeds.nbcnews.com/feeds/topstories",
     "https://feeds.a.dj.com/rss/RSSWorldNews.xml",  # وال‌استریت‌ژورنال (فقط تیتر، چون محتوای اصلی پولیه)
+    # خاورمیانه
+    "https://www.aljazeera.com/xml/rss/all.xml",
     # عبری‌زبان / اسرائیلی
     "https://www.timesofisrael.com/feed/",
     "https://www.ynet.co.il/Integration/StoryRss2.xml",
     "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
     # فارسی‌زبان مستقل (غیروابسته به جمهوری اسلامی)
     "https://feeds.bbci.co.uk/persian/rss.xml",
+    "https://www.rferl.org/api/z-oiil-vomx-tpergmp",  # رادیو فردا (بخش ایران رادیو فردا/آزادی)
+    # ایران‌وایر (آزمایشی — لینک رسمی تایید نشد، اگر خطا داد حذفش کنید)
+    "https://iranwire.com/en/feed/",
     # ایران‌اینترنشنال (آزمایشی — لینک RSS رسمی این سایت پیدا/تایید نشد،
     # اگر در لاگ‌های Actions خطا داد، همین خط را حذف کنید)
     "https://www.iranintl.com/en/rss",
