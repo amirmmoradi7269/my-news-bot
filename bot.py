@@ -22,7 +22,7 @@ import logging
 import subprocess
 import requests
 import feedparser
-from deep_translator import GoogleTranslator
+from deep_translator import GoogleTranslator, MyMemoryTranslator
 
 # ============================================================
 # بخش ۱: تنظیمات
@@ -162,17 +162,30 @@ def clean_html(raw_html: str) -> str:
 
 def translate_to_persian(text: str) -> str:
     """
-    ترجمه‌ی رایگان متن به فارسی (از طریق Google Translate غیررسمی).
-    اگر ترجمه به هر دلیلی شکست بخورد، همان متن اصلی برگردانده می‌شود
-    (بهتر از پست نشدن خبر است).
+    ترجمه‌ی رایگان متن به فارسی. اول گوگل امتحان می‌شود؛ اگر جواب نداد
+    (مثلاً به‌خاطر محدودیت IP سرورهای گیت‌هاب)، سرویس دوم امتحان می‌شود.
+    اگر هیچ‌کدام جواب نداد، متن اصلی برگردانده می‌شود.
     """
     if not text:
         return text
+
     try:
-        return GoogleTranslator(source="auto", target="fa").translate(text)
+        result = GoogleTranslator(source="auto", target="fa").translate(text)
+        if result and result.strip():
+            return result
     except Exception as e:
-        log.warning(f"ترجمه ناموفق بود، متن اصلی استفاده می‌شود: {e}")
-        return text
+        log.warning(f"ترجمه با گوگل ناموفق بود: {e}")
+
+    try:
+        result = MyMemoryTranslator(source="en-US", target="fa-IR").translate(text)
+        if result and result.strip():
+            log.info("ترجمه با سرویس دوم (MyMemory) انجام شد.")
+            return result
+    except Exception as e:
+        log.warning(f"ترجمه با سرویس دوم هم ناموفق بود: {e}")
+
+    log.warning("هر دو سرویس ترجمه شکست خوردند؛ متن اصلی (غیرفارسی) پست می‌شود.")
+    return text
 
 
 def find_category(title: str, summary: str):
