@@ -94,6 +94,11 @@ CATEGORIES = {
         "warned that", "announced that", "spokesperson said",
         "אמר הנשיא", "ראש הממשלה אמר", "הודיע",
     ],
+    "🗽 ترامپ": [
+        "trump", "donald trump", "president trump", "trump said",
+        "trump announced", "trump warned", "trump administration",
+        "טראמפ",
+    ],
 }
 
 # ============================================================
