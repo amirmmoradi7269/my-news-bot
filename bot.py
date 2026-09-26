@@ -68,80 +68,70 @@ RSS_FEEDS = [
 # ============================================================
 
 CATEGORIES = {
-    "⚔️ جنگ": [
-        "جنگ", "حمله", "موشک", "بمباران", "درگیری نظامی", "آتش‌بس",
-        "تجاوز نظامی", "حمله نظامی", "پهپاد", "انفجار",
-        "war", "attack", "missile", "airstrike", "air strike", "bombing",
-        "military conflict", "ceasefire", "invasion", "drone strike",
-        "explosion", "strike on", "troops",
-        "מלחמה", "תקיפה", "טיל", "הפצצה", "לחימה", "הפוגה", "פלישה",
-        "רחפן", "פיצוץ",
-    ],
-    "📌 خبر مهم ایران": [
+    "🇮🇷 ایران": [
+        # فارسی
         "رئیس‌جمهور", "رهبر انقلاب", "مجلس شورای اسلامی", "بانک مرکزی",
         "وزارت خارجه", "شورای امنیت", "تحریم", "دولت ایران", "قوه قضاییه",
+        "سپاه پاسداران", "سپاه", "قرارگاه خاتم‌الانبیا", "خاتم‌الانبیا",
+        "نیروی قدس", "بسیج", "نمایندگان مجلس",
+        # انگلیسی
         "iran's president", "iranian president", "iranian government",
         "iran nuclear", "sanctions on iran", "tehran", "iranian parliament",
         "iran's supreme leader", "irgc", "revolutionary guard",
+        "khatam al-anbia", "quds force", "basij",
+        # عبری
         "איראן", "טהראן", "נשיא איראן", "משמרות המהפכה",
     ],
-    "📅 تعطیلی": [
-        "تعطیل شد", "تعطیلی مدارس", "تعطیل رسمی", "تعطیلی ادارات",
-        "تعطیلی بازار", "تعطیلی دانشگاه‌ها", "روز تعطیل",
-        "schools closed", "offices closed", "public holiday declared",
-        "declared a holiday", "markets closed",
-        "חג", "בתי הספר נסגרו", "יום שבתון",
+    "⚔️ جنگ و فعالیت نظامی": [
+        # فارسی
+        "جنگ", "حمله", "موشک", "بمباران", "درگیری نظامی", "آتش‌بس",
+        "تجاوز نظامی", "حمله نظامی", "پهپاد", "انفجار", "ارتش",
+        "نیروی نظامی", "رزمایش", "تجهیزات نظامی", "پایگاه نظامی",
+        # انگلیسی
+        "war", "attack", "missile", "airstrike", "air strike", "bombing",
+        "military conflict", "ceasefire", "invasion", "drone strike",
+        "explosion", "strike on", "troops", "military", "army", "navy",
+        "air force", "military exercise", "military base", "arms deal",
+        "weapons shipment",
+        # عبری
+        "מלחמה", "תקיפה", "טיל", "הפצצה", "לחימה", "הפוגה", "פלישה",
+        "רחפן", "פיצוץ", "צבא", "כוחות צבאיים", "תרגיל צבאי", "בסיס צבאי",
     ],
-    "🗣️ سخنان مهم": [
-        "اعلام کرد", "هشدار داد", "تاکید کرد", "اظهار داشت", "خبر داد",
-        "وزیر گفت", "سخنگو گفت", "رئیس‌جمهور گفت",
-        "president said", "prime minister said", "said in a statement",
-        "warned that", "announced that", "spokesperson said",
-        "אמר הנשיא", "ראש הממשלה אמר", "הודיע",
+    "🏛️ نهادهای حکومتی مهم": [
+        # فارسی
+        "کاخ سفید", "پنتاگون", "کنگره آمریکا", "وزارت دفاع آمریکا",
+        "کابینه اسرائیل", "کابینه امنیتی اسرائیل", "ستاد ارتش اسرائیل",
+        "کرملین", "دولت چین", "حزب کمونیست چین",
+        # انگلیسی
+        "white house", "pentagon", "us congress", "us defense secretary",
+        "israeli cabinet", "israeli security cabinet", "idf general staff",
+        "kremlin", "chinese government", "chinese communist party",
+        # عبری
+        "הבית הלבן", "הפנטגון", "הקבינט הביטחוני", "קרמלין",
+    ],
+    "🤖 هوش مصنوعی": [
+        "هوش مصنوعی",
+        "artificial intelligence", "ai", "chatgpt", "openai", "machine learning",
+        "ai model", "generative ai",
+        "בינה מלאכותית",
+    ],
+    "🗣️ اظهارات مقامات ارشد": [
+        # فارسی
+        "رئیس‌جمهور گفت", "نخست‌وزیر گفت", "وزیر دفاع گفت", "وزیر جنگ گفت",
+        "اعلام کرد", "هشدار داد", "تاکید کرد", "اظهار داشت",
+        # انگلیسی
+        "president said", "prime minister said", "defense minister said",
+        "war minister said", "foreign minister said", "said in a statement",
+        "warned that", "announced that", "cabinet member",
+        "putin", "xi jinping", "netanyahu", "khamenei", "zelensky",
+        # عبری
+        "אמר הנשיא", "ראש הממשלה אמר", "שר הביטחון אמר", "הודיע",
+        "נתניהו", "פוטין", "זלנסקי",
     ],
     "🗽 ترامپ": [
         "trump", "donald trump", "president trump", "trump said",
         "trump announced", "trump warned", "trump administration",
         "טראמפ",
-    ],
-    "🇷🇺 روسیه": [
-        "روسیه", "پوتین", "کرملین",
-        "russia", "russian", "putin", "kremlin", "moscow",
-        "רוסיה", "פוטין", "קרמלין",
-    ],
-    "🇨🇳 چین": [
-        "چین", "پکن",
-        "china", "chinese", "beijing", "xi jinping",
-        "סין", "בייג'ינג",
-    ],
-    "🪖 فعالیت نظامی": [
-        "ارتش", "نیروی نظامی", "رزمایش", "تجهیزات نظامی", "پایگاه نظامی",
-        "military", "army", "navy", "air force", "troops deployed",
-        "military exercise", "military base", "arms deal", "weapons shipment",
-        "צבא", "כוחות צבאיים", "תרגיל צבאי", "בסיס צבאי",
-    ],
-    "🤖 هوش مصنوعی": [
-        "هوش مصنوعی",
-        "artificial intelligence", " ai ", "chatgpt", "openai", "machine learning",
-        "ai model", "generative ai",
-        "בינה מלאכותית",
-    ],
-    "⭐ افراد سرشناس": [
-        "putin", "xi jinping", "netanyahu", "khamenei", "zelensky",
-        "elon musk", "vladimir putin",
-        "پوتین", "نتانیاهو", "خامنه‌ای", "زلنسکی", "ایلان ماسک",
-        "נתניהו", "זלנסקי", "פוטין",
-    ],
-    "🇺🇸 آمریکا": [
-        "آمریکا", "ایالات متحده", "کاخ سفید", "کنگره آمریکا",
-        "united states", "u.s.", "white house", "us congress",
-        "washington", "us president", "pentagon", "state department",
-        "ארה\"ב", "וושינגטון", "הבית הלבן", "הקונגרס האמריקאי",
-    ],
-    "🇮🇱 اسرائیل": [
-        "اسرائیل", "تل‌آویو", "نتانیاهو", "ارتش اسرائیل",
-        "israel", "israeli", "tel aviv", "idf", "netanyahu government",
-        "ישראל", "תל אביב", "צה\"ל",
     ],
 }
 
@@ -246,7 +236,8 @@ def find_category(title: str, summary: str):
     full_text = f"{title} {summary}".lower()
     for category_name, keywords in CATEGORIES.items():
         for keyword in keywords:
-            if keyword.lower() in full_text:
+            pattern = r"\b" + re.escape(keyword.strip().lower()) + r"\b"
+            if re.search(pattern, full_text):
                 return category_name
     return None
 
