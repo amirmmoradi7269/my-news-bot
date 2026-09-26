@@ -60,6 +60,7 @@ RSS_FEEDS = [
     "http://rss.cnn.com/rss/cnn_topstories.rss",
     "http://feeds.foxnews.com/foxnews/latest?format=xml",
     "http://feeds.nbcnews.com/feeds/topstories",
+    "https://www.cbsnews.com/latest/rss/main",  # CBS News
     "https://feeds.a.dj.com/rss/RSSWorldNews.xml",  # وال‌استریت‌ژورنال (فقط تیتر، چون محتوای اصلی پولیه)
 ]
 
