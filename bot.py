@@ -18,6 +18,7 @@ import os
 import re
 import html
 import time
+import calendar
 import logging
 import subprocess
 import requests
@@ -192,8 +193,19 @@ def git_push_state():
         diff = subprocess.run(["git", "diff", "--staged", "--quiet"])
         if diff.returncode != 0:
             subprocess.run(["git", "commit", "-m", "update state"], check=True, capture_output=True)
-            subprocess.run(["git", "push"], check=True, capture_output=True)
-            log.info("وضعیت ذخیره و push شد.")
+
+            # قبل از push، هر تغییری که روی گیت‌هاب هست را می‌گیریم تا push رد نشود
+            subprocess.run(
+                ["git", "pull", "--rebase", "--autostash"],
+                check=False, capture_output=True,
+            )
+
+            push_result = subprocess.run(["git", "push"], capture_output=True)
+            if push_result.returncode == 0:
+                log.info("وضعیت ذخیره و push شد.")
+            else:
+                err = push_result.stderr.decode("utf-8", errors="ignore")
+                log.warning(f"push هنوز ناموفق بود حتی بعد از pull: {err}")
     except subprocess.CalledProcessError as e:
         log.warning(f"ذخیره‌ی وضعیت روی گیت‌هاب ناموفق بود: {e}")
 
@@ -271,8 +283,24 @@ def send_to_channel(text: str) -> bool:
         return False
 
 
+MAX_ARTICLE_AGE_HOURS = 24  # اخبار قدیمی‌تر از این مقدار، حتی اگر مرتبط باشند، پست نمی‌شوند
+
+
+def is_too_old(entry) -> bool:
+    """اگر تاریخ انتشار خبر مشخص و قدیمی‌تر از حد مجاز بود True برمی‌گرداند."""
+    time_struct = entry.get("published_parsed") or entry.get("updated_parsed")
+    if not time_struct:
+        return False  # اگر تاریخ مشخص نبود، خبر را رد نمی‌کنیم
+    try:
+        published_ts = calendar.timegm(time_struct)
+        age_hours = (time.time() - published_ts) / 3600
+        return age_hours > MAX_ARTICLE_AGE_HOURS
+    except Exception:
+        return False
+
+
 def find_next_candidate(posted_links: set):
-    """یک خبر مرتبط و پست‌نشده پیدا می‌کند (اگر باشد)."""
+    """یک خبر مرتبط، پست‌نشده و نسبتاً تازه پیدا می‌کند (اگر باشد)."""
     for feed_url in RSS_FEEDS:
         try:
             parsed = feedparser.parse(feed_url)
@@ -286,6 +314,10 @@ def find_next_candidate(posted_links: set):
         for entry in reversed(parsed.entries):
             link = entry.get("link")
             if not link or link in posted_links:
+                continue
+
+            if is_too_old(entry):
+                posted_links.add(link)  # قدیمی است، دیگر بررسی نشود
                 continue
 
             title = clean_html(entry.get("title", "بدون عنوان"))
