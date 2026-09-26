@@ -51,6 +51,8 @@ RSS_FEEDS = [
     "https://www.timesofisrael.com/feed/",
     "https://www.ynet.co.il/Integration/StoryRss2.xml",
     "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
+    # فارسی‌زبان مستقل (غیروابسته به جمهوری اسلامی)
+    "https://feeds.bbci.co.uk/persian/rss.xml",
     # ایران‌اینترنشنال (آزمایشی — لینک RSS رسمی این سایت پیدا/تایید نشد،
     # اگر در لاگ‌های Actions خطا داد، همین خط را حذف کنید)
     "https://www.iranintl.com/en/rss",
