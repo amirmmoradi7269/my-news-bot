@@ -42,18 +42,7 @@ MAX_RUN_SECONDS = int(os.environ.get("TEST_DURATION_SECONDS") or (5 * 3600 + 40 
 # ============================================================
 
 RSS_FEEDS = [
-    # آمریکایی
-    "http://rss.cnn.com/rss/cnn_topstories.rss",
-    "http://feeds.foxnews.com/foxnews/latest?format=xml",
-    "http://feeds.nbcnews.com/feeds/topstories",
-    "https://feeds.a.dj.com/rss/RSSWorldNews.xml",  # وال‌استریت‌ژورنال (فقط تیتر، چون محتوای اصلی پولیه)
-    # خاورمیانه
-    "https://www.aljazeera.com/xml/rss/all.xml",
-    # عبری‌زبان / اسرائیلی
-    "https://www.timesofisrael.com/feed/",
-    "https://www.ynet.co.il/Integration/StoryRss2.xml",
-    "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
-    # فارسی‌زبان مستقل (غیروابسته به جمهوری اسلامی)
+    # فارسی‌زبان مستقل (غیروابسته به جمهوری اسلامی) — اول این‌ها چک می‌شوند
     "https://feeds.bbci.co.uk/persian/rss.xml",
     "https://www.rferl.org/api/z-oiil-vomx-tpergmp",  # رادیو فردا (بخش ایران رادیو فردا/آزادی)
     # ایران‌وایر (آزمایشی — لینک رسمی تایید نشد، اگر خطا داد حذفش کنید)
@@ -61,6 +50,17 @@ RSS_FEEDS = [
     # ایران‌اینترنشنال (آزمایشی — لینک RSS رسمی این سایت پیدا/تایید نشد،
     # اگر در لاگ‌های Actions خطا داد، همین خط را حذف کنید)
     "https://www.iranintl.com/en/rss",
+    # خاورمیانه
+    "https://www.aljazeera.com/xml/rss/all.xml",
+    # عبری‌زبان / اسرائیلی
+    "https://www.timesofisrael.com/feed/",
+    "https://www.ynet.co.il/Integration/StoryRss2.xml",
+    "https://www.jpost.com/rss/rssfeedsfrontpage.aspx",
+    # آمریکایی (آخرین اولویت)
+    "http://rss.cnn.com/rss/cnn_topstories.rss",
+    "http://feeds.foxnews.com/foxnews/latest?format=xml",
+    "http://feeds.nbcnews.com/feeds/topstories",
+    "https://feeds.a.dj.com/rss/RSSWorldNews.xml",  # وال‌استریت‌ژورنال (فقط تیتر، چون محتوای اصلی پولیه)
 ]
 
 # ============================================================
