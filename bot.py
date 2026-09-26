@@ -157,7 +157,9 @@ def git_push_state():
 
 def clean_html(raw_html: str) -> str:
     text = re.sub(r"<[^>]+>", "", raw_html or "")
-    return html.unescape(text).strip()
+    text = html.unescape(text).strip()
+    text = re.sub(r"https?://\S+", "", text)  # حذف هر لینک خامی که در متن باشد
+    return text.strip()
 
 
 def translate_to_persian(text: str) -> str:
@@ -209,7 +211,12 @@ def format_message(title: str, summary: str, category: str) -> str:
 
 def send_to_channel(text: str) -> bool:
     url = f"{TELEGRAM_API}/sendMessage"
-    payload = {"chat_id": CHANNEL_ID, "text": text, "parse_mode": "HTML"}
+    payload = {
+        "chat_id": CHANNEL_ID,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
     try:
         resp = requests.post(url, data=payload, timeout=20)
         resp.raise_for_status()
