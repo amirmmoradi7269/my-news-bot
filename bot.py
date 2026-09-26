@@ -104,6 +104,45 @@ CATEGORIES = {
         "trump announced", "trump warned", "trump administration",
         "טראמפ",
     ],
+    "🇷🇺 روسیه": [
+        "روسیه", "پوتین", "کرملین",
+        "russia", "russian", "putin", "kremlin", "moscow",
+        "רוסיה", "פוטין", "קרמלין",
+    ],
+    "🇨🇳 چین": [
+        "چین", "پکن",
+        "china", "chinese", "beijing", "xi jinping",
+        "סין", "בייג'ינג",
+    ],
+    "🪖 فعالیت نظامی": [
+        "ارتش", "نیروی نظامی", "رزمایش", "تجهیزات نظامی", "پایگاه نظامی",
+        "military", "army", "navy", "air force", "troops deployed",
+        "military exercise", "military base", "arms deal", "weapons shipment",
+        "צבא", "כוחות צבאיים", "תרגיל צבאי", "בסיס צבאי",
+    ],
+    "🤖 هوش مصنوعی": [
+        "هوش مصنوعی",
+        "artificial intelligence", " ai ", "chatgpt", "openai", "machine learning",
+        "ai model", "generative ai",
+        "בינה מלאכותית",
+    ],
+    "⭐ افراد سرشناس": [
+        "putin", "xi jinping", "netanyahu", "khamenei", "zelensky",
+        "elon musk", "vladimir putin",
+        "پوتین", "نتانیاهو", "خامنه‌ای", "زلنسکی", "ایلان ماسک",
+        "נתניהו", "זלנסקי", "פוטין",
+    ],
+    "🇺🇸 آمریکا": [
+        "آمریکا", "ایالات متحده", "کاخ سفید", "کنگره آمریکا",
+        "united states", "u.s.", "white house", "us congress",
+        "washington", "us president", "pentagon", "state department",
+        "ארה\"ב", "וושינגטון", "הבית הלבן", "הקונגרס האמריקאי",
+    ],
+    "🇮🇱 اسرائیل": [
+        "اسرائیل", "تل‌آویو", "نتانیاهو", "ارتش اسرائیل",
+        "israel", "israeli", "tel aviv", "idf", "netanyahu government",
+        "ישראל", "תל אביב", "צה\"ל",
+    ],
 }
 
 # ============================================================
