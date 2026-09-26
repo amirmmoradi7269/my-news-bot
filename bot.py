@@ -215,8 +215,7 @@ def find_category(title: str, summary: str):
 def format_message(title: str, summary: str, category: str) -> str:
     if len(summary) > 350:
         summary = summary[:350].rsplit(" ", 1)[0] + "..."
-    message = f"{category}\n"
-    message += f"<b>{html.escape(title)}</b>\n\n"
+    message = f"<b>{html.escape(title)}</b>\n\n"
     if summary:
         message += html.escape(summary)
     return message
