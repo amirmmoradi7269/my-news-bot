@@ -46,6 +46,7 @@ RSS_FEEDS = [
     "http://rss.cnn.com/rss/cnn_topstories.rss",
     "http://feeds.foxnews.com/foxnews/latest?format=xml",
     "http://feeds.nbcnews.com/feeds/topstories",
+    "https://feeds.a.dj.com/rss/RSSWorldNews.xml",  # وال‌استریت‌ژورنال (فقط تیتر، چون محتوای اصلی پولیه)
     # عبری‌زبان / اسرائیلی
     "https://www.timesofisrael.com/feed/",
     "https://www.ynet.co.il/Integration/StoryRss2.xml",
